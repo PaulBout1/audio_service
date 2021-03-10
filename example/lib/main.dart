@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:flutter_isolate/flutter_isolate.dart';
 
 void main() => runApp(new MyApp());
 
@@ -46,7 +47,7 @@ class MainScreen extends StatelessWidget {
               children: [
                 if (!running) ...[
                   // UI to show when we're not running, i.e. a menu.
-                  audioPlayerButton(),
+                  audioPlayerButtonIsolate(),
                   if (kIsWeb || !Platform.isMacOS) textToSpeechButton(),
                 ] else ...[
                   // UI to show when we're running, i.e. player state/controls.
@@ -185,6 +186,13 @@ class MainScreen extends StatelessWidget {
         },
       );
 
+  RaisedButton audioPlayerButtonIsolate() => startButton(
+        'AudioPlayer isolate',
+        () async {
+          FlutterIsolate.spawn(isolate, "hello");
+        },
+      );
+
   RaisedButton textToSpeechButton() => startButton(
         'TextToSpeech',
         () {
@@ -308,6 +316,23 @@ class _SeekBarState extends State<SeekBar> {
 // NOTE: Your entrypoint MUST be a top-level function.
 void _audioPlayerTaskEntrypoint() async {
   AudioServiceBackground.run(() => AudioPlayerTask());
+}
+
+void isolate(String arg) async {
+  print('isolate started');
+  print('bckground do connecting...');
+  await AudioService.connect();
+  print('bckground connected');
+  await AudioService.start(
+    backgroundTaskEntrypoint: _audioPlayerTaskEntrypoint,
+    androidNotificationChannelName: 'Enospro audio service',
+    // Enable this if you want the Android service to exit the foreground state on pause.
+    //androidStopForegroundOnPause: true,
+    androidNotificationColor: 0xFF2196f3,
+    androidNotificationIcon: 'mipmap/ic_launcher',
+    androidEnableQueue: true,
+  );
+  print('bckground done');
 }
 
 /// This task defines logic for playing a list of podcast episodes.
