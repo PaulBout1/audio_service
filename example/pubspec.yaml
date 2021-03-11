@@ -12,6 +12,7 @@ dependencies:
   path_provider: ^2.0.1
   audio_session: ^0.1.0
   just_audio: ^0.7.0
+  flutter_isolate: ^2.0.0
   # flutter_tts: ^0.8.5
   rxdart: ^0.26.0
   # rxdart: ">= 0.24.1 < 0.26.0"

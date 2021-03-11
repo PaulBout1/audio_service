@@ -9,12 +9,25 @@ import 'package:flutter/material.dart';
 //import 'package:flutter_tts/flutter_tts.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:flutter_isolate/flutter_isolate.dart';
 
 //final _isTtsSupported = kIsWeb || !Platform.isMacOS;
 
 // You might want to provide this using dependency injection rather than a
 // global variable.
 late AudioHandler _audioHandler;
+
+void isolate(String msg) async {
+  print('bckground do connecting to audio service...');
+
+  /// initiate global variable from isolate.. (no connect() method provided)
+  _audioHandler = await AudioService.connectFromIsolate();
+  print('bckground connected, now play the sound');
+
+  /// ! raise `MissingPluginException (MissingPluginException(No implementation found for method setQueue on channel ryanheise.com/audioServiceBackground))`
+  await _audioHandler.play();
+  print('bckground done');
+}
 
 /// Extension methods for our custom actions.
 extension DemoAudioHandler on AudioHandler {
@@ -208,7 +221,7 @@ class MainScreen extends StatelessWidget {
   IconButton playButton() => IconButton(
         icon: Icon(Icons.play_arrow),
         iconSize: 64.0,
-        onPressed: _audioHandler.play,
+        onPressed: () => FlutterIsolate.spawn(isolate, "isolate args..."),
       );
 
   IconButton pauseButton() => IconButton(
